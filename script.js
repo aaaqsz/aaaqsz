@@ -53,6 +53,7 @@ const QUESTIONS = [
 
 let idx = 0;
 let score = 0;
+let results = []; // ✅ 回答履歴を保存
 
 const questionEl = document.getElementById("question");
 const choicesEl = document.getElementById("choices");
@@ -78,12 +79,21 @@ function showQuestion() {
     const li = document.createElement("li");
     li.textContent = choice;
     li.onclick = () => {
+      let correct = false;
       if(i === q.a){
         li.classList.add("correct");
         score++;
+        correct = true;
       } else {
         li.classList.add("wrong");
       }
+      // ✅ 回答を記録
+      results.push({
+        question: q.q,
+        userAnswer: q.c[i],
+        correctAnswer: q.c[q.a],
+        correct: correct
+      });
       Array.from(choicesEl.children).forEach(el => el.onclick = null);
     };
     choicesEl.appendChild(li);
@@ -106,6 +116,8 @@ function finish(){
   resultEl.classList.remove("hidden");
   scoreEl.textContent = `${score} / ${QUESTIONS.length}`;
 
+  let html = "";
+
   if(score === QUESTIONS.length){
     const facts = [
       "筋肉は48時間以上の休養でより成長する。",
@@ -115,8 +127,22 @@ function finish(){
       "懸垂は広背筋を鍛える最強の自重トレーニング。"
     ];
     const fact = facts[Math.floor(Math.random()*facts.length)];
-    detailEl.innerHTML = `🎉 全問正解！おめでとう！<br><br>豆知識: ${fact}`;
+    html += `🎉 全問正解！おめでとう！<br><br>豆知識: ${fact}<br><br>`;
   }
+
+  // ✅ 間違えた問題の一覧を追加
+  const wrongs = results.filter(r => !r.correct);
+  if(wrongs.length > 0){
+    html += "<h3>間違えた問題と正解:</h3><ul>";
+    wrongs.forEach(r => {
+      html += `<li><b>Q:</b> ${r.question}<br>
+               あなたの答え: ${r.userAnswer}<br>
+               正解: ${r.correctAnswer}</li><br>`;
+    });
+    html += "</ul>";
+  }
+
+  detailEl.innerHTML = html;
 }
 
 showQuestion();
